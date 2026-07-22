@@ -46,21 +46,55 @@ export ippz=${ippz:-''}
 export warp=${warp:-''}
 export name=${name:-''}
 export oap=${oap:-''}
+export scmd=${scmd:-''}
 v46url="https://icanhazip.com"
 agsbxurl="https://raw.githubusercontent.com/btjidi/daili/main/argosbx.sh"
+run_name=$(basename "$0" 2>/dev/null)
+case "$run_name" in
+  agsbx|argosbx.sh|bash|sh) run_name="" ;;
+esac
+shortcut_cmd="${scmd:-${run_name:-dl}}"
+case "$shortcut_cmd" in
+  ''|*[!A-Za-z0-9_-]*|[0-9]*)
+    echo "快捷命令名称无效，已使用默认命令 dl"
+    shortcut_cmd="dl"
+    ;;
+esac
 showmode(){
 echo "Argosbx脚本一键SSH命令生器在线网址：https://btjidi.github.io/daili/"
 echo "主脚本：bash <(curl -Ls https://raw.githubusercontent.com/btjidi/daili/main/argosbx.sh) 或 bash <(wget -qO- https://raw.githubusercontent.com/btjidi/daili/main/argosbx.sh)"
-echo "显示节点信息命令：agsbx list 【或者】 主脚本 list"
-echo "重置变量组命令：自定义各种协议变量组 agsbx rep 【或者】 自定义各种协议变量组 主脚本 rep"
+echo "快捷菜单命令：$shortcut_cmd"
+echo "显示节点信息命令：$shortcut_cmd list 【或者】 主脚本 list"
+echo "重置变量组命令：自定义各种协议变量组 $shortcut_cmd rep 【或者】 自定义各种协议变量组 主脚本 rep"
 echo "更新脚本命令：原已安装的自定义各种协议变量组 主脚本 rep"
-echo "更新Xray或Singbox内核命令：agsbx upx或ups 【或者】 主脚本 upx或ups"
-echo "重启脚本命令：agsbx res 【或者】 主脚本 res"
-echo "卸载脚本命令：agsbx del 【或者】 主脚本 del"
-echo "双栈VPS显示IPv4/IPv6节点配置命令：ippz=4或6 agsbx list 【或者】 ippz=4或6 主脚本 list"
+echo "更新Xray或Singbox内核命令：$shortcut_cmd upx或ups 【或者】 主脚本 upx或ups"
+echo "重启脚本命令：$shortcut_cmd res 【或者】 主脚本 res"
+echo "卸载脚本命令：$shortcut_cmd del 【或者】 主脚本 del"
+echo "双栈VPS显示IPv4/IPv6节点配置命令：ippz=4或6 $shortcut_cmd list 【或者】 ippz=4或6 主脚本 list"
 echo "申请本地IP域名证书脚本：bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/acme-yg/main/acme.sh)"
 echo "---------------------------------------------------------"
 echo
+}
+shortcutmenu(){
+echo "请选择 $shortcut_cmd 快捷操作："
+echo "1) 节点显示命令：list"
+echo "2) 卸载脚本命令：del"
+echo "3) 升级Xray内核：upx"
+echo "4) 升级Singbox内核：ups"
+echo "5) 重启脚本命令：res"
+echo "6) 调整变量、更新脚本命令：rep"
+echo "0) 退出"
+read -r -p "请输入数字或命令：" shortcut_choice
+case "$shortcut_choice" in
+  1|list) exec "$0" list ;;
+  2|del) exec "$0" del ;;
+  3|upx) exec "$0" upx ;;
+  4|ups) exec "$0" ups ;;
+  5|res) exec "$0" res ;;
+  6|rep) exec "$0" rep ;;
+  0|q|quit|exit) exit 0 ;;
+  *) echo "无效选择：$shortcut_choice"; exit 1 ;;
+esac
 }
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "甬哥Github项目 ：github.com/yonggekkk"
@@ -1243,11 +1277,17 @@ if find /proc/*/exe -type l 2>/dev/null | grep -E '/proc/[0-9]+/exe' | xargs -r 
 [ -f ~/.bashrc ] || touch ~/.bashrc
 sed -i '/agsbx/d' ~/.bashrc
 SCRIPT_PATH="$HOME/bin/agsbx"
+SHORTCUT_PATH="$HOME/bin/$shortcut_cmd"
 mkdir -p "$HOME/bin"
 (command -v curl >/dev/null 2>&1 && curl -sL "$agsbxurl" -o "$SCRIPT_PATH") || (command -v wget >/dev/null 2>&1 && wget -qO "$SCRIPT_PATH" "$agsbxurl")
 chmod +x "$SCRIPT_PATH"
+if [ "$SHORTCUT_PATH" != "$SCRIPT_PATH" ]; then
+cp "$SCRIPT_PATH" "$SHORTCUT_PATH"
+chmod +x "$SHORTCUT_PATH"
+fi
+echo "$shortcut_cmd" > "$HOME/agsbx/shortcut_cmd"
 if ! pidof systemd >/dev/null 2>&1 && ! command -v rc-service >/dev/null 2>&1; then
-echo "if ! find /proc/*/exe -type l 2>/dev/null | grep -E '/proc/[0-9]+/exe' | xargs -r readlink 2>/dev/null | grep -Eq 'agsbx/(s|x)' && ! pgrep -f 'agsbx/(s|x)' >/dev/null 2>&1; then echo '检测到系统可能中断过，或者变量格式错误？建议在SSH对话框输入 reboot 重启下服务器。现在自动执行Argosbx脚本的节点恢复操作，请稍等……'; sleep 6; export alns=\"${alns}\" cfip=\"${cfip}\" hyjpt=\"${hyjpt}\" cdnym=\"${cdnym}\" name=\"${name}\" ippz=\"${ippz}\" argo=\"${argo}\" uuid=\"${uuid}\" $wap=\"${warp}\" $xhp=\"${port_xh}\" $xup=\"${port_xu}\" $vxp=\"${port_vx}\" $ssp=\"${port_ss}\" $sop=\"${port_so}\" $anp=\"${port_an}\" $arp=\"${port_ar}\" $vlp=\"${port_vl_re}\" $vwp=\"${port_vw}\" $vmp=\"${port_vm_ws}\" $hyp=\"${port_hy2}\" $tup=\"${port_tu}\" $xcp=\"${port_xc}\" $nvp=\"${port_nv}\" reym=\"${ym_vl_re}\" agn=\"${ARGO_DOMAIN}\" agk=\"${ARGO_AUTH}\"; bash "$HOME/bin/agsbx"; fi" >> ~/.bashrc
+echo "if ! find /proc/*/exe -type l 2>/dev/null | grep -E '/proc/[0-9]+/exe' | xargs -r readlink 2>/dev/null | grep -Eq 'agsbx/(s|x)' && ! pgrep -f 'agsbx/(s|x)' >/dev/null 2>&1; then echo '检测到系统可能中断过，或者变量格式错误？建议在SSH对话框输入 reboot 重启下服务器。现在自动执行Argosbx脚本的节点恢复操作，请稍等……'; sleep 6; export alns=\"${alns}\" cfip=\"${cfip}\" hyjpt=\"${hyjpt}\" cdnym=\"${cdnym}\" name=\"${name}\" ippz=\"${ippz}\" argo=\"${argo}\" uuid=\"${uuid}\" scmd=\"${shortcut_cmd}\" $wap=\"${warp}\" $xhp=\"${port_xh}\" $xup=\"${port_xu}\" $vxp=\"${port_vx}\" $ssp=\"${port_ss}\" $sop=\"${port_so}\" $anp=\"${port_an}\" $arp=\"${port_ar}\" $vlp=\"${port_vl_re}\" $vwp=\"${port_vw}\" $vmp=\"${port_vm_ws}\" $hyp=\"${port_hy2}\" $tup=\"${port_tu}\" $xcp=\"${port_xc}\" $nvp=\"${port_nv}\" reym=\"${ym_vl_re}\" agn=\"${ARGO_DOMAIN}\" agk=\"${ARGO_AUTH}\"; bash "$HOME/bin/agsbx"; fi" >> ~/.bashrc
 fi
 sed -i '/export PATH="\$HOME\/bin:\$PATH"/d' ~/.bashrc
 echo 'export PATH="$HOME/bin:$PATH"' >> "$HOME/.bashrc"
@@ -1277,12 +1317,12 @@ cat > /etc/local.d/alpineargosbx.start <<EOF
 sleep 10
 nohup $HOME/agsbx/cloudflared tunnel --url http://localhost:\$(cat $HOME/agsbx/argoport.log) --edge-ip-version auto --no-autoupdate --protocol http2 > $HOME/agsbx/argo.log 2>&1 &
 sleep 10
-HOME="$HOME" $HOME/bin/agsbx list >/dev/null 2>&1
+HOME="$HOME" $HOME/bin/$shortcut_cmd list >/dev/null 2>&1
 EOF
 chmod +x /etc/local.d/alpineargosbx.start
 rc-update add local default >/dev/null 2>&1
 else
-echo '@reboot sleep 10 && /bin/bash -c "nohup $HOME/agsbx/cloudflared tunnel --url http://localhost:$(cat $HOME/agsbx/argoport.log) --edge-ip-version auto --no-autoupdate --protocol http2 > $HOME/agsbx/argo.log 2>&1 & sleep 10 && bash $HOME/bin/agsbx list >/dev/null 2>&1"' >> /tmp/crontab.tmp
+echo "@reboot sleep 10 && /bin/bash -c \"nohup \$HOME/agsbx/cloudflared tunnel --url http://localhost:\$(cat \$HOME/agsbx/argoport.log) --edge-ip-version auto --no-autoupdate --protocol http2 > \$HOME/agsbx/argo.log 2>&1 & sleep 10 && bash \$HOME/bin/$shortcut_cmd list >/dev/null 2>&1\"" >> /tmp/crontab.tmp
 fi
 fi
 fi
@@ -2499,10 +2539,11 @@ echo
 echo "---------------------------------------------------------"
 echo "聚合节点信息，请进入 $HOME/agsbx/jhsub.txt 文件目录查看或者运行 cat $HOME/agsbx/jhsub.txt 查看"
 echo "========================================================="
-echo "相关快捷方式如下：(首次安装成功后需重连SSH，agsbx快捷方式才可生效；如未生效，请使用主脚本)"
+echo "相关快捷方式如下：(首次安装成功后需重连SSH，$shortcut_cmd 快捷方式才可生效；如未生效，请使用主脚本)"
 showmode
 }
 cleandel(){
+installed_shortcut=$(cat "$HOME/agsbx/shortcut_cmd" 2>/dev/null)
 for P in /proc/[0-9]*; do if [ -L "$P/exe" ]; then TARGET=$(readlink -f "$P/exe" 2>/dev/null); if echo "$TARGET" | grep -qE '/agsbx/c|/agsbx/s|/agsbx/x'; then PID=$(basename "$P"); kill "$PID" 2>/dev/null; fi; fi; done
 kill -15 $(pgrep -f 'agsbx/s' 2>/dev/null) $(pgrep -f 'agsbx/c' 2>/dev/null) $(pgrep -f 'agsbx/x' 2>/dev/null) $(pgrep -f 'websbx' 2>/dev/null) >/dev/null 2>&1
 sed -i '/agsbx/d' ~/.bashrc
@@ -2516,6 +2557,8 @@ sed -i '/websbx/d' /tmp/crontab.tmp
 crontab /tmp/crontab.tmp >/dev/null 2>&1
 rm /tmp/crontab.tmp
 rm -rf  "$HOME/bin/agsbx"
+[ -n "$installed_shortcut" ] && rm -rf "$HOME/bin/$installed_shortcut"
+[ "$shortcut_cmd" != "agsbx" ] && rm -rf "$HOME/bin/$shortcut_cmd"
 if pidof systemd >/dev/null 2>&1; then
 for svc in xr sb argo; do
 systemctl stop "$svc" >/dev/null 2>&1
@@ -2555,6 +2598,10 @@ else
 nohup $HOME/agsbx/sing-box run -c $HOME/agsbx/sb.json >/dev/null 2>&1 &
 fi
 }
+if [ -z "$1" ] && { find /proc/*/exe -type l 2>/dev/null | grep -E '/proc/[0-9]+/exe' | xargs -r readlink 2>/dev/null | grep -Eq 'agsbx/(s|x)' || pgrep -f 'agsbx/(s|x)' >/dev/null 2>&1; }; then
+shortcutmenu
+exit
+fi
 if [ "$1" = "del" ]; then
 cleandel
 rm -rf sbx_update "$HOME/agsbx" "$HOME/websbx"
