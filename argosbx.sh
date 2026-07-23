@@ -51,7 +51,7 @@ v46url="https://icanhazip.com"
 agsbxurl="https://raw.githubusercontent.com/btjidi/daili/main/argosbx.sh"
 run_name=$(basename "$0" 2>/dev/null)
 case "$run_name" in
-  agsbx|argosbx.sh|bash|sh) run_name="" ;;
+  agsbx|argosbx.sh|bash|sh|*[!A-Za-z0-9_-]*|[0-9]*) run_name="" ;;
 esac
 shortcut_cmd="${scmd:-${run_name:-dl}}"
 case "$shortcut_cmd" in
@@ -198,15 +198,35 @@ case "$warp" in *s6*|x) sbyx='ipv6_only' ;; *) sbyx='prefer_ipv4' ;; esac
 case "$warp" in *x6*) xryx='ForceIPv6' ;; *x*) xryx='ForceIPv4v6' ;; *) xryx='ForceIPv6v4' ;; esac
 fi
 }
+download_binary(){
+url="$1"
+fallback_url="$2"
+out="$3"
+tmp="$out.tmp"
+rm -f "$tmp"
+(command -v curl >/dev/null 2>&1 && curl -fLo "$tmp" -# --retry 2 "$url") || (command -v wget >/dev/null 2>&1 && timeout 30 wget -O "$tmp" --tries=2 "$url")
+if [ ! -s "$tmp" ] || head -c 32 "$tmp" 2>/dev/null | grep -qi 'Not Found'; then
+rm -f "$tmp"
+if [ -n "$fallback_url" ]; then
+echo "主下载地址不可用，尝试备用地址：$fallback_url"
+(command -v curl >/dev/null 2>&1 && curl -fLo "$tmp" -# --retry 2 "$fallback_url") || (command -v wget >/dev/null 2>&1 && timeout 30 wget -O "$tmp" --tries=2 "$fallback_url")
+fi
+fi
+if [ ! -s "$tmp" ] || head -c 32 "$tmp" 2>/dev/null | grep -qi 'Not Found'; then
+rm -f "$tmp"
+echo "下载失败：$url"
+return 1
+fi
+mv "$tmp" "$out"
+chmod +x "$out"
+}
 upxray(){
-url="https://github.com/btjidi/daili/releases/download/argosbx/xray-$cpu"; out="$HOME/agsbx/xray"; (command -v curl >/dev/null 2>&1 && curl -Lo "$out" -# --retry 2 "$url") || (command -v wget>/dev/null 2>&1 && timeout 3 wget -O "$out" --tries=2 "$url")
-chmod +x "$HOME/agsbx/xray"
+url="https://github.com/btjidi/daili/releases/download/argosbx/xray-$cpu"; fallback_url="https://github.com/yonggekkk/argosbx/releases/download/argosbx/xray-$cpu"; out="$HOME/agsbx/xray"; download_binary "$url" "$fallback_url" "$out" || return 1
 sbcore=$("$HOME/agsbx/xray" version 2>/dev/null | awk '/^Xray/{print $2}')
 echo "已安装Xray正式版内核：$sbcore"
 }
 upsingbox(){
-url="https://github.com/btjidi/daili/releases/download/argosbx/sing-box-$cpu"; out="$HOME/agsbx/sing-box"; (command -v curl>/dev/null 2>&1 && curl -Lo "$out" -# --retry 2 "$url") || (command -v wget>/dev/null 2>&1 && timeout 3 wget -O "$out" --tries=2 "$url")
-chmod +x "$HOME/agsbx/sing-box"
+url="https://github.com/btjidi/daili/releases/download/argosbx/sing-box-$cpu"; fallback_url="https://github.com/yonggekkk/argosbx/releases/download/argosbx/sing-box-$cpu"; out="$HOME/agsbx/sing-box"; download_binary "$url" "$fallback_url" "$out" || return 1
 sbcore=$("$HOME/agsbx/sing-box" version 2>/dev/null | awk '/version/{print $NF}')
 echo "已安装Sing-box正式版内核：$sbcore"
 }
@@ -228,7 +248,7 @@ installxray(){
 echo
 echo "=========启用xray内核========="
 mkdir -p "$HOME/agsbx/xrk"
-if [ ! -e "$HOME/agsbx/xray" ]; then
+if ! "$HOME/agsbx/xray" version >/dev/null 2>&1; then
 upxray
 fi
 cat > "$HOME/agsbx/xr.json" <<EOF
@@ -578,7 +598,7 @@ fi
 installsb(){
 echo
 echo "=========启用Sing-box内核========="
-if [ ! -e "$HOME/agsbx/sing-box" ]; then
+if ! "$HOME/agsbx/sing-box" version >/dev/null 2>&1; then
 upsingbox
 fi
 cat > "$HOME/agsbx/sb.json" <<EOF
