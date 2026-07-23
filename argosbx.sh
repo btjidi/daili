@@ -1311,6 +1311,8 @@ echo "if ! find /proc/*/exe -type l 2>/dev/null | grep -E '/proc/[0-9]+/exe' | x
 fi
 sed -i '/export PATH="\$HOME\/bin:\$PATH"/d' ~/.bashrc
 echo 'export PATH="$HOME/bin:$PATH"' >> "$HOME/.bashrc"
+sed -i '/export PATH="\$HOME\/bin:\$PATH"/d' ~/.profile 2>/dev/null
+echo 'export PATH="$HOME/bin:$PATH"' >> "$HOME/.profile"
 grep -qxF 'source ~/.bashrc' ~/.bash_profile 2>/dev/null || echo 'source ~/.bashrc' >> ~/.bash_profile
 . ~/.bashrc 2>/dev/null
 crontab -l > /tmp/crontab.tmp 2>/dev/null
@@ -2568,6 +2570,7 @@ for P in /proc/[0-9]*; do if [ -L "$P/exe" ]; then TARGET=$(readlink -f "$P/exe"
 kill -15 $(pgrep -f 'agsbx/s' 2>/dev/null) $(pgrep -f 'agsbx/c' 2>/dev/null) $(pgrep -f 'agsbx/x' 2>/dev/null) $(pgrep -f 'websbx' 2>/dev/null) >/dev/null 2>&1
 sed -i '/agsbx/d' ~/.bashrc
 sed -i '/export PATH="\$HOME\/bin:\$PATH"/d' ~/.bashrc
+sed -i '/export PATH="\$HOME\/bin:\$PATH"/d' ~/.profile 2>/dev/null
 . ~/.bashrc 2>/dev/null
 crontab -l > /tmp/crontab.tmp 2>/dev/null
 sed -i '/agsbx\/sing-box/d' /tmp/crontab.tmp
