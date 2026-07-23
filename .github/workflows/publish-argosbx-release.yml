@@ -1,0 +1,62 @@
+name: 发布 Argosbx 二进制附件
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/publish-argosbx-release.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-argosbx-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      TAG_NAME: argosbx
+      SOURCE_REPO: yonggekkk/argosbx
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download release assets
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          assets=(
+            xray-amd64
+            xray-arm64
+            sing-box-amd64
+            sing-box-arm64
+            private.key
+            cert.crt
+          )
+          for asset in "${assets[@]}"; do
+            curl -fL --retry 3 --retry-delay 2 \
+              -o "release-assets/$asset" \
+              "https://github.com/${SOURCE_REPO}/releases/download/${TAG_NAME}/${asset}"
+          done
+          cp release-assets/cert.crt release-assets/cert.pem
+          (cd release-assets && sha256sum * > SHA256SUMS)
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release edit "$TAG_NAME" \
+              --title "Argosbx binaries" \
+              --notes "Mirrored Argosbx runtime assets for this fork."
+          else
+            gh release create "$TAG_NAME" \
+              --title "Argosbx binaries" \
+              --notes "Mirrored Argosbx runtime assets for this fork."
+          fi
+          gh release upload "$TAG_NAME" release-assets/* --clobber
