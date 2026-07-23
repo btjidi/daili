@@ -265,7 +265,7 @@ ym_vl_re=apple.com
 fi
 echo "$ym_vl_re" > "$HOME/agsbx/ym_vl_re"
 echo "Reality域名：$ym_vl_re"
-if [ -z "$(tr -d '[:space:]' < "$HOME/agsbx/xrk/private_key" 2>/dev/null)" ] || [ -z "$(tr -d '[:space:]' < "$HOME/agsbx/xrk/public_key" 2>/dev/null)" ]; then
+if [ -z "$(cat "$HOME/agsbx/xrk/private_key" 2>/dev/null | tr -d '[:space:]')" ] || [ -z "$(cat "$HOME/agsbx/xrk/public_key" 2>/dev/null | tr -d '[:space:]')" ]; then
 key_pair=$("$HOME/agsbx/xray" x25519)
 private_key=$(echo "$key_pair" | awk -F':' '/PrivateKey/ {print $2}' | xargs)
 public_key=$(echo "$key_pair" | awk -F':' '/Password/ {print $2}' | xargs)
@@ -279,7 +279,7 @@ public_key_x=$(cat "$HOME/agsbx/xrk/public_key")
 short_id_x=$(cat "$HOME/agsbx/xrk/short_id")
 fi
 if [ -n "$xhp" ] || [ -n "$vxp" ] || [ -n "$vwp" ]; then
-if [ -z "$(tr -d '[:space:]' < "$HOME/agsbx/xrk/dekey" 2>/dev/null)" ] || [ -z "$(tr -d '[:space:]' < "$HOME/agsbx/xrk/enkey" 2>/dev/null)" ]; then
+if [ -z "$(cat "$HOME/agsbx/xrk/dekey" 2>/dev/null | tr -d '[:space:]')" ] || [ -z "$(cat "$HOME/agsbx/xrk/enkey" 2>/dev/null | tr -d '[:space:]')" ]; then
 vlkey=$("$HOME/agsbx/xray" vlessenc)
 dekey=$(echo "$vlkey" | grep '"decryption":' | sed -n '2p' | cut -d' ' -f2- | tr -d '"')
 enkey=$(echo "$vlkey" | grep '"encryption":' | sed -n '2p' | cut -d' ' -f2- | tr -d '"')
