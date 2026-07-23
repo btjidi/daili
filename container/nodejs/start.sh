@@ -181,7 +181,7 @@ reym=apple.com
 fi
 echo "$reym" > "$HOME/agsbx/reym"
 echo "Reality域名：$reym"
-if [ ! -e "$HOME/agsbx/xrk/private_key" ]; then
+if [ -z "$(tr -d '[:space:]' < "$HOME/agsbx/xrk/private_key" 2>/dev/null)" ] || [ -z "$(tr -d '[:space:]' < "$HOME/agsbx/xrk/public_key" 2>/dev/null)" ]; then
 key_pair=$("$HOME/agsbx/xray" x25519)
 private_key=$(echo "$key_pair" | grep "PrivateKey" | awk '{print $2}')
 public_key=$(echo "$key_pair" | grep "Password" | awk '{print $2}')
@@ -195,7 +195,7 @@ public_key_x=$(cat "$HOME/agsbx/xrk/public_key")
 short_id_x=$(cat "$HOME/agsbx/xrk/short_id")
 fi
 if [ -n "$xhpt" ] || [ -n "$vxpt" ] || [ -n "$vwpt" ]; then
-if [ ! -e "$HOME/agsbx/xrk/dekey" ]; then
+if [ -z "$(tr -d '[:space:]' < "$HOME/agsbx/xrk/dekey" 2>/dev/null)" ] || [ -z "$(tr -d '[:space:]' < "$HOME/agsbx/xrk/enkey" 2>/dev/null)" ]; then
 vlkey=$("$HOME/agsbx/xray" vlessenc)
 dekey=$(echo "$vlkey" | grep '"decryption":' | sed -n '2p' | cut -d' ' -f2- | tr -d '"')
 enkey=$(echo "$vlkey" | grep '"encryption":' | sed -n '2p' | cut -d' ' -f2- | tr -d '"')
